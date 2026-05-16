@@ -1,24 +1,41 @@
-//
-//  ContentView.swift
-//  Storage Optimizer
-//
-//  Created by Krishna Chaitanya Kambhampati on 5/15/26.
-//
-
 import SwiftUI
 
 struct ContentView: View {
+    @State private var selectedCategory: ScanCategory? = nil
+    @State private var showSuccess = false
+    @State private var recoveredBytes: Int = 0
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        NavigationStack {
+            DashboardView(selectedCategory: $selectedCategory, recoveredBytes: $recoveredBytes)
+                .navigationTitle("Storage Optimizer")
+                .toolbarBackground(Theme.primary, for: .navigationBar)
+                .toolbarBackground(.visible, for: .navigationBar)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        NavigationLink(destination: PhotoScannerView()) {
+                            Image(systemName: "photo.on.rectangle")
+                                .foregroundColor(.white)
+                        }
+                    }
+                }
+                .navigationDestination(isPresented: Binding(
+                    get: { selectedCategory != nil },
+                    set: { if !$0 { selectedCategory = nil } }
+                )) {
+                    if let category = selectedCategory {
+                        ReviewView(category: category, recoveredBytes: $recoveredBytes, showSuccess: $showSuccess)
+                    }
+                }
+                .sheet(isPresented: $showSuccess) {
+                    SuccessView(recoveredBytes: recoveredBytes)
+                }
         }
-        .padding()
     }
 }
 
-#Preview {
-    ContentView()
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
+    }
 }

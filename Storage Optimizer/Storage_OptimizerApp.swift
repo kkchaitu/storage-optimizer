@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-@main
 struct Storage_OptimizerApp: App {
     var body: some Scene {
         WindowGroup {
