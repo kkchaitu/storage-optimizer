@@ -3,20 +3,34 @@ import SwiftUI
 struct DashboardView: View {
     @Binding var selectedCategory: ScanCategory?
     @Binding var recoveredBytes: Int
+    @ObservedObject var scanner: PhotoScanner
 
-    init(selectedCategory: Binding<ScanCategory?>, recoveredBytes: Binding<Int>) {
+    init(selectedCategory: Binding<ScanCategory?>, recoveredBytes: Binding<Int>, scanner: PhotoScanner) {
         self._selectedCategory = selectedCategory
         self._recoveredBytes = recoveredBytes
+        self.scanner = scanner
     }
 
     private var totalStorage: Double = 128
     private var usedStorage: Double = 92.4
     private var freeStorage: Double { totalStorage - usedStorage }
 
+    private var recoverableBytes: Int {
+        scanner.duplicateRecoverableBytes + scanner.blurredRecoverableBytes
+    }
+
+    private var formattedRecoverable: String {
+        if recoverableBytes >= 1_000_000 {
+            return String(format: "%.1f GB", Double(recoverableBytes) / 1_000_000)
+        }
+        return String(format: "%.1f MB", Double(recoverableBytes) / 1_000_000)
+    }
+
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
                 storageSummary
+                scanAction
                 categoryGrid
                 recommendations
             }
@@ -52,7 +66,7 @@ struct DashboardView: View {
             ProgressView(value: usedStorage, total: totalStorage)
                 .tint(Theme.primary)
 
-            Text("Optimizing your gallery and documents can reclaim up to 18 GB.")
+            Text(recoverableBytes > 0 ? "Detected content can reclaim up to \(formattedRecoverable) of space." : "Scan your photo library to identify duplicates and blurred photos.")
                 .font(.subheadline)
                 .foregroundColor(Theme.textSecondary)
         }
@@ -60,6 +74,22 @@ struct DashboardView: View {
         .background(Theme.surface)
         .cornerRadius(20)
         .shadow(color: Color.black.opacity(0.06), radius: 24, x: 0, y: 10)
+    }
+
+    private var scanAction: some View {
+        Button(action: startScan) {
+            HStack {
+                ProgressView() .opacity(scanner.isScanning ? 1 : 0)
+                Text(scanner.isScanning ? "Scanning Photos…" : "Scan Photo Library")
+                    .font(.headline)
+                    .foregroundColor(.white)
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(scanner.isScanning ? Color.gray : Theme.primary)
+            .cornerRadius(16)
+        }
+        .disabled(scanner.isScanning)
     }
 
     private var categoryGrid: some View {
@@ -77,7 +107,7 @@ struct DashboardView: View {
                         Text(category.title)
                             .font(.headline)
                             .foregroundColor(Theme.textPrimary)
-                        Text(category.subtitle)
+                        Text(subtitle(for: category))
                             .font(.subheadline)
                             .foregroundColor(Theme.textSecondary)
                     }
@@ -123,10 +153,27 @@ struct DashboardView: View {
             }
         }
     }
+
+    private func subtitle(for category: ScanCategory) -> String {
+        switch category.type {
+        case .duplicates:
+            return scanner.duplicates.isEmpty ? category.subtitle : "\(scanner.duplicates.count) duplicate groups found"
+        case .blurredPhotos:
+            return scanner.blurred.isEmpty ? category.subtitle : "\(scanner.blurred.count) blurred photos found"
+        default:
+            return category.subtitle
+        }
+    }
+
+    private func startScan() {
+        Task {
+            await scanner.scan()
+        }
+    }
 }
 
 struct DashboardView_Previews: PreviewProvider {
     static var previews: some View {
-        DashboardView(selectedCategory: .constant(ScanCategory.previewCategories.first), recoveredBytes: .constant(0))
+        DashboardView(selectedCategory: .constant(ScanCategory.previewCategories.first), recoveredBytes: .constant(0), scanner: PhotoScanner())
     }
 }

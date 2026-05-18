@@ -1,7 +1,17 @@
 import SwiftUI
 
+enum ScanCategoryType: String, CaseIterable, Identifiable {
+    case duplicates
+    case blurredPhotos
+    case largeVideos
+    case largeFiles
+
+    var id: String { rawValue }
+}
+
 struct ScanCategory: Identifiable {
     let id = UUID()
+    let type: ScanCategoryType
     let title: String
     let subtitle: String
     let iconName: String
@@ -14,6 +24,7 @@ struct ScanCategory: Identifiable {
 extension ScanCategory {
     static let previewCategories: [ScanCategory] = [
         ScanCategory(
+            type: .duplicates,
             title: "Duplicates",
             subtitle: "Review repeated files",
             iconName: "doc.on.doc",
@@ -28,6 +39,7 @@ extension ScanCategory {
             ]
         ),
         ScanCategory(
+            type: .blurredPhotos,
             title: "Blurred Photos",
             subtitle: "Keep sharper memories",
             iconName: "eye.slash",
@@ -41,6 +53,7 @@ extension ScanCategory {
             ]
         ),
         ScanCategory(
+            type: .largeVideos,
             title: "Large Videos",
             subtitle: "Trim bulk media",
             iconName: "video.fill",
@@ -54,6 +67,7 @@ extension ScanCategory {
             ]
         ),
         ScanCategory(
+            type: .largeFiles,
             title: "Large Files",
             subtitle: "Documents and downloads",
             iconName: "folder.fill",

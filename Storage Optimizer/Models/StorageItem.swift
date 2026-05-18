@@ -7,13 +7,15 @@ struct StorageItem: Identifiable {
     let sizeBytes: Int
     let imageName: String?
     let filePath: String?
+    let assetIdentifier: String?
 
-    init(title: String, subtitle: String, sizeBytes: Int, imageName: String? = nil, filePath: String? = nil) {
+    init(title: String, subtitle: String, sizeBytes: Int, imageName: String? = nil, filePath: String? = nil, assetIdentifier: String? = nil) {
         self.title = title
         self.subtitle = subtitle
         self.sizeBytes = sizeBytes
         self.imageName = imageName
         self.filePath = filePath
+        self.assetIdentifier = assetIdentifier
     }
 
     var sizeText: String {
