@@ -2,7 +2,7 @@ import SwiftUI
 import Photos
 
 struct PhotoScannerView: View {
-    @StateObject private var scanner = PhotoScanner()
+    @ObservedObject var scanner: PhotoScanner
     @ObservedObject private var manager = PhotoLibraryManager.shared
 
     var body: some View {
@@ -59,7 +59,8 @@ struct PhotoScannerView: View {
 
             Spacer()
         }
-        .onAppear { }
+        .navigationTitle("Photo Scan")
+        .background(Theme.lightLavender.opacity(0.2).edgesIgnoringSafeArea(.all))
     }
 
     private func startScan() {
@@ -111,5 +112,5 @@ private struct PhotoThumbnail: View {
 }
 
 #Preview {
-    PhotoScannerView()
+    PhotoScannerView(scanner: PhotoScanner())
 }
